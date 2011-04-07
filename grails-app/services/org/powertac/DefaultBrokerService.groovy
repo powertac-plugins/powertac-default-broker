@@ -34,4 +34,11 @@ class DefaultBrokerService extends Broker {
     defaultProductionTariffSpecification.addToRates(defaultProductionRate)
 
   }
+
+  @Override
+  void receiveMessage(Object object) {
+    // handle object appropriately. (use object instanceof (any org.powertac.common domain class))
+  }
+
+
 }
