@@ -12,16 +12,14 @@ class DefaultBrokerService extends Broker {
   double consumptionRate
   double productionRate
 
-  def DefaultBrokerService(double cr, double pr, String id, String apiKey) {
+  def DefaultBrokerService(double cr, double pr, String id) {
     consumptionRate = cr
     productionRate = pr
     this.local = true
     this.id = id
-    this.apiKey = apiKey
   }
 
   def publishDefaultTariffs() {
-    static transactional = true
 
     /* Default Consumption Tariff */
     TariffSpecification defaultConsumptionTariffSpecification = new TariffSpecification
