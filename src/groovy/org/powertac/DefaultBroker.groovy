@@ -5,7 +5,7 @@ import org.powertac.common.Rate
 import org.powertac.common.TariffSpecification
 import org.powertac.common.enumerations.PowerType
 
-class DefaultBrokerService extends Broker {
+class DefaultBroker extends Broker {
 
   static transactional = true
 
