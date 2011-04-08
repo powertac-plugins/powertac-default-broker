@@ -11,7 +11,7 @@ class DefaultBroker extends Broker {
   double consumptionRate
   double productionRate
 
-  def DefaultBrokerService() {
+  DefaultBroker() {
     this.local = true
 
     consumptionRate = 1.0
