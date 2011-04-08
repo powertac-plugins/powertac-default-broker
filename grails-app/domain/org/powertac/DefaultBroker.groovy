@@ -4,32 +4,31 @@ import org.powertac.common.Broker
 import org.powertac.common.Rate
 import org.powertac.common.TariffSpecification
 import org.powertac.common.enumerations.PowerType
+import org.powertac.common.msg.SimStart
 
 class DefaultBroker extends Broker {
-
-  static transactional = true
 
   double consumptionRate
   double productionRate
 
-  def DefaultBrokerService(double cr, double pr, String id) {
-    consumptionRate = cr
-    productionRate = pr
+  def DefaultBrokerService() {
     this.local = true
-    this.id = id
+
+    consumptionRate = 1.0
+    productionRate = 1.0
   }
 
   def publishDefaultTariffs() {
 
     /* Default Consumption Tariff */
     TariffSpecification defaultConsumptionTariffSpecification = new TariffSpecification
-    (brokerId: id, powerType: PowerType.CONSUMPTION)
+    (broker: this, powerType: PowerType.CONSUMPTION)
     Rate defaultConsumptionRate = new Rate(value: consumptionRate)
     defaultConsumptionTariffSpecification.addToRates(defaultConsumptionRate)
 
     /* Default Production Tariff */
     TariffSpecification defaultProductionTariffSpecification = new TariffSpecification
-    (brokerId: id, powerType: PowerType.PRODUCTION)
+    (broker: this, powerType: PowerType.PRODUCTION)
     Rate defaultProductionRate = new Rate(value: productionRate)
     defaultProductionTariffSpecification.addToRates(defaultProductionRate)
 
@@ -37,7 +36,10 @@ class DefaultBroker extends Broker {
 
   @Override
   void receiveMessage(Object object) {
-    // handle object appropriately. (use object instanceof (any org.powertac.common domain class))
+    // Publish tariffs on simulation start
+    if (object instanceof SimStart) {
+      publishDefaultTariffs()
+    }
   }
 
 
