@@ -5,6 +5,7 @@ import org.powertac.common.Rate
 import org.powertac.common.TariffSpecification
 import org.powertac.common.enumerations.PowerType
 import org.powertac.common.msg.SimStart
+import org.powertac.common.Competition
 
 class DefaultBroker extends Broker {
 
@@ -40,7 +41,11 @@ class DefaultBroker extends Broker {
     if (object instanceof SimStart) {
       publishDefaultTariffs()
     }
+    // set default tariffs according to competition configuration
+    if (object instanceof Competition)
+    {
+    consumptionRate = object.defaultConsumptionRate
+    productionRate = object.defaultProductionRate
+    }
+    }
   }
-
-
-}
