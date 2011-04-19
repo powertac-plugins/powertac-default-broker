@@ -29,12 +29,19 @@ import org.powertac.common.interfaces.TariffMarket
  * competition configuration
  * @author Christoph Flath, KIT
  */
-class DefaultBroker extends Broker {
-
+class DefaultBroker extends Broker 
+{
+  // JEC - this class should be a Service, not a Domain type. I have added
+  // transients notation to temporarily bypass the problem...
+  
   double consumptionRate
   double productionRate
   TariffMarket tariffMarketService
+  
+  static transients = ['tariffMarketService']
 
+  // JEC -- this is not the correct way to initialize either a service
+  // or a domain type.
   DefaultBroker() {
     this.local = true
 
@@ -60,7 +67,8 @@ class DefaultBroker extends Broker {
   }
 
   @Override
-  void receiveMessage(Object object) {
+  void receiveMessage(Object object) 
+  {
     // Publish tariffs on simulation start
     if (object instanceof SimStart) {
       publishDefaultTariffs()
@@ -68,8 +76,9 @@ class DefaultBroker extends Broker {
     // set default tariffs according to competition configuration parameter map entries
     if (object instanceof Competition)
     {
-    consumptionRate = object.parameterMap.defaultConsumptionRate
-    productionRate = object.parameterMap.defaultProductionRate
-    }
+      // JEC - this does not work
+      //consumptionRate = object.parameterMap.defaultConsumptionRate
+      //productionRate = object.parameterMap.defaultProductionRate
     }
   }
+}
