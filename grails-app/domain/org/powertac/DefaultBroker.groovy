@@ -21,8 +21,8 @@ import org.powertac.common.Rate
 import org.powertac.common.TariffSpecification
 import org.powertac.common.enumerations.PowerType
 import org.powertac.common.msg.SimStart
-import org.powertac.common.Competition
 import org.powertac.common.interfaces.TariffMarket
+import org.powertac.common.PluginConfig
 /**
  * The default broker represents the legacy power provider. It provides
  * basic tariffs for consumption and production as specified in the
@@ -30,16 +30,11 @@ import org.powertac.common.interfaces.TariffMarket
  * @author Christoph Flath, KIT
  */
 class DefaultBroker extends Broker {
-
-  double consumptionRate
-  double productionRate
+  PluginConfig configuration
   TariffMarket tariffMarketService
 
   DefaultBroker() {
     this.local = true
-
-    consumptionRate = 1.0
-    productionRate = 1.0
   }
 
   def publishDefaultTariffs() {
@@ -47,14 +42,14 @@ class DefaultBroker extends Broker {
     /* Default Consumption Tariff */
     TariffSpecification defaultConsumptionTariffSpecification = new TariffSpecification
     (broker: this, powerType: PowerType.CONSUMPTION)
-    Rate defaultConsumptionRate = new Rate(value: consumptionRate)
+    Rate defaultConsumptionRate = new Rate(value: getConsumptionRate())
     defaultConsumptionTariffSpecification.addToRates(defaultConsumptionRate)
     tariffMarketService.processTariff(defaultConsumptionTariffSpecification)
 
     /* Default Production Tariff */
     TariffSpecification defaultProductionTariffSpecification = new TariffSpecification
     (broker: this, powerType: PowerType.PRODUCTION)
-    Rate defaultProductionRate = new Rate(value: productionRate)
+    Rate defaultProductionRate = new Rate(value: getProductionRate())
     defaultProductionTariffSpecification.addToRates(defaultProductionRate)
     tariffMarketService.processTariff(defaultProductionTariffSpecification)
   }
@@ -65,11 +60,29 @@ class DefaultBroker extends Broker {
     if (object instanceof SimStart) {
       publishDefaultTariffs()
     }
-    // set default tariffs according to competition configuration parameter map entries
-    if (object instanceof Competition)
-    {
-    consumptionRate = object.parameterMap.defaultConsumptionRate
-    productionRate = object.parameterMap.defaultProductionRate
     }
+  // set default tariffs according to configuration entries
+  private Number getProductionRate()
+  {
+    BigDecimal rate = 0.0
+    if (configuration == null) {
+      log.error("cannot find configuration")
     }
+    else {
+      rate = configuration.configuration['defaultProductionRate'].toBigDecimal()
+    }
+    return rate
   }
+     private Number getConsumptionRate()
+  {
+    BigDecimal rate = 0.0
+    if (configuration == null) {
+      log.error("cannot find configuration")
+    }
+    else {
+      rate = configuration.configuration['defaultConsumptionRate'].toBigDecimal()
+    }
+    return rate
+  }
+  }
+
