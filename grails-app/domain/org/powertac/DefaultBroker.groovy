@@ -41,13 +41,16 @@ class DefaultBroker extends Broker
   static transients = ['tariffMarketService']
 
   // JEC -- this is not the correct way to initialize either a service
-  // or a domain type.
-  DefaultBroker() {
-    this.local = true
+  // or a domain type. In fact, this constructor is not called by the
+  // server bootstrap code.
+  //DefaultBroker() {
+  //  this.username = 'defaultBroker'
+  //  this.local = true
+  //  this.save()
 
-    consumptionRate = 1.0
-    productionRate = 1.0
-  }
+  //  consumptionRate = 1.0
+  //  productionRate = 1.0
+  //}
 
   def publishDefaultTariffs() {
 
