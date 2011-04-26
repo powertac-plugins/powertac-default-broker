@@ -31,31 +31,39 @@ import org.powertac.common.PluginConfig
  */
 class DefaultBroker extends Broker {
   PluginConfig configuration
-  TariffMarket tariffMarketService
+  // JEC - this class should be a Service, not a Domain type. I have added
+  // transients notation to temporarily bypass the problem...
 
+  TariffMarket tariffMarketService
+  
+  static transients = ['tariffMarketService']
+
+  // JEC -- this is not the correct way to initialize either a service
+  // or a domain type.
   DefaultBroker() {
     this.local = true
   }
 
-  def publishDefaultTariffs() {
+  def publishDefaultTariffs(TariffMarket tms) {
 
     /* Default Consumption Tariff */
     TariffSpecification defaultConsumptionTariffSpecification = new TariffSpecification
     (broker: this, powerType: PowerType.CONSUMPTION)
     Rate defaultConsumptionRate = new Rate(value: getConsumptionRate())
     defaultConsumptionTariffSpecification.addToRates(defaultConsumptionRate)
-    tariffMarketService.processTariff(defaultConsumptionTariffSpecification)
+    tms.processTariff(defaultConsumptionTariffSpecification)
 
     /* Default Production Tariff */
     TariffSpecification defaultProductionTariffSpecification = new TariffSpecification
     (broker: this, powerType: PowerType.PRODUCTION)
     Rate defaultProductionRate = new Rate(value: getProductionRate())
     defaultProductionTariffSpecification.addToRates(defaultProductionRate)
-    tariffMarketService.processTariff(defaultProductionTariffSpecification)
+    tms.processTariff(defaultProductionTariffSpecification)
   }
 
   @Override
-  void receiveMessage(Object object) {
+  void receiveMessage(Object object) 
+  {
     // Publish tariffs on simulation start
     if (object instanceof SimStart) {
       publishDefaultTariffs()
@@ -85,4 +93,3 @@ class DefaultBroker extends Broker {
     return rate
   }
   }
-
