@@ -30,7 +30,7 @@ class DefaultBroker
     {
         /* Default Consumption Tariff */
         TariffSpecification defaultConsumptionTariffSpecification = new TariffSpecification
-        (brokerId: id, powerType: PowerType.CONSUMPTION)
+        (broker: broker, powerType: PowerType.CONSUMPTION)
         Rate defaultConsumptionRate = new Rate(value: getDefaultConsumptionRate())
         defaultConsumptionTariffSpecification.addToRates(defaultConsumptionRate)
         defaultConsumptionTariffSpecification.save()
@@ -38,7 +38,7 @@ class DefaultBroker
 
         /* Default Production Tariff */
         TariffSpecification defaultProductionTariffSpecification = new TariffSpecification
-        (brokerId: id, powerType: PowerType.PRODUCTION)
+        (broker: broker, powerType: PowerType.PRODUCTION)
         Rate defaultProductionRate = new Rate(value: getProductionRate())
         defaultProductionTariffSpecification.addToRates(defaultProductionRate)
         defaultProductionTariffSpecification.save()
