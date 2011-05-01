@@ -11,10 +11,6 @@ class DefaultBrokerInitializationService implements InitializationService {
 
     def defaultBrokerService
 
-    def serviceMethod() {
-
-    }
-
     void setDefaults() {
         DefaultBroker defaultBroker = new DefaultBroker()
         PluginConfig config = new PluginConfig(roleName:'defaultBroker', name: 'defaultBroker',
