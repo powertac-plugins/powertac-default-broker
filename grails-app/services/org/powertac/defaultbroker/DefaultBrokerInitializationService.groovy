@@ -24,6 +24,6 @@ class DefaultBrokerInitializationService implements InitializationService {
 
     String initialize(Competition competition, List<String> completedInits) {
         defaultBrokerService.init()
-        return 'org.powertac.defaultbroker.DefaultBroker'
+        return 'DefaultBroker'
     }
 }
