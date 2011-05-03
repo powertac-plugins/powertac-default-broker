@@ -20,10 +20,10 @@ class DefaultBrokerInitializationService implements InitializationService {
         defaultBroker.broker = new Broker(username: 'defaultBroker', local: true)
         defaultBroker.broker.save()
         defaultBroker.save()
-        defaultBrokerService.init()
     }
 
     String initialize(Competition competition, List<String> completedInits) {
+        defaultBrokerService.init()
         return 'org.powertac.defaultbroker.DefaultBroker'
     }
 }
