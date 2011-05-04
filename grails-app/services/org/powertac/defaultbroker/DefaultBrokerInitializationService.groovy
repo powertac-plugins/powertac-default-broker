@@ -11,10 +11,6 @@ class DefaultBrokerInitializationService implements InitializationService {
 
     def defaultBrokerService
 
-    def serviceMethod() {
-
-    }
-
     void setDefaults() {
         DefaultBroker defaultBroker = new DefaultBroker()
         PluginConfig config = new PluginConfig(roleName:'defaultBroker', name: 'defaultBroker',
@@ -27,10 +23,10 @@ class DefaultBrokerInitializationService implements InitializationService {
           enabled: true)
         defaultBroker.broker.save()
         defaultBroker.save()
-        defaultBrokerService.init()
     }
 
     String initialize(Competition competition, List<String> completedInits) {
-        return 'org.powertac.defaultbroker.DefaultBroker'
+        defaultBrokerService.init()
+        return 'DefaultBroker'
     }
 }
