@@ -1,7 +1,9 @@
-package org.powertac.common
+package org.powertac.defaultbroker
 
 import grails.test.GrailsUnitTestCase
 import org.powertac.defaultbroker.DefaultBroker
+import org.powertac.common.PluginConfig
+import org.powertac.common.Broker
 
 /**
  * Created by IntelliJ IDEA.
