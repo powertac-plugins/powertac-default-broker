@@ -43,8 +43,14 @@ class DefaultBroker
         defaultProductionTariffSpecification.addToRates(defaultProductionRate)
         defaultProductionTariffSpecification.save()
 
-        broker.addToTariffs(new Tariff(tariffSpec: defaultConsumptionTariffSpecification, broker: broker))
-        broker.addToTariffs(new Tariff(tariffSpec: defaultProductionTariffSpecification, broker: broker))
+        def defaultConsumptionTariff = new Tariff(tariffSpec: defaultConsumptionTariffSpecification, broker: broker)
+        defaultConsumptionTariff.init()
+
+        def defaultProductionTariff = new Tariff(tariffSpec: defaultProductionTariffSpecification, broker: broker)
+        defaultProductionTariff.init()
+
+        broker.addToTariffs(defaultConsumptionTariff)
+        broker.addToTariffs(defaultProductionTariff)
         tariffMarketService.processTariff(defaultConsumptionTariffSpecification)
         tariffMarketService.processTariff(defaultProductionTariffSpecification)
     }

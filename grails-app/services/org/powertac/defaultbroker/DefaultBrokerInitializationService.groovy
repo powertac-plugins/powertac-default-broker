@@ -10,6 +10,7 @@ class DefaultBrokerInitializationService implements InitializationService {
     static transactional = true
 
     def defaultBrokerService
+    def springSecurityService
 
     void setDefaults() {
         DefaultBroker defaultBroker = new DefaultBroker()
