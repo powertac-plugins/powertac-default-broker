@@ -13,6 +13,7 @@ activemq-data/
 .DS_Store
 ehthumbs.db
 Thumbs.db
+*.log
 
 # Compiled source
 *.class
