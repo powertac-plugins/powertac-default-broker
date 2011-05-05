@@ -20,13 +20,16 @@ class DefaultBrokerTests extends GrailsUnitTestCase{
     protected void setUp()
     {
         super.setUp()
-        DefaultBroker defaultBroker = new DefaultBroker()
         PluginConfig config = new PluginConfig(roleName:'defaultBroker', name: 'defaultBroker',
                 configuration: [consumptionRate: '20.0', productionRate: '10.0'])
-        defaultBroker.broker = new Broker(username: 'defaultBroker', local: true)
+        assert config.save()
+        Broker broker = new Broker(username: 'defaultBroker', local: true)
+        assert broker.save()
+        defaultBroker = new DefaultBroker(broker: broker, config: config)
         if (!defaultBroker.validate()) {
             defaultBroker.errors.allErrors.each { println it.toString() }
         }
+        assert defaultBroker.save()
     }
     protected void tearDown()
     {
@@ -40,8 +43,8 @@ class DefaultBrokerTests extends GrailsUnitTestCase{
     void testDefaultBrokerPublishRates()
     {
         defaultBroker.publishDefaultTariffs()
-        assertTrue(20.0,defaultBroker.broker.tariffs.asList().get(0).tariffSpec.rates.get(0))
-        assertTrue(10.0,defaultBroker.broker.tariffs.asList().get(1).tariffSpec.rates.get(1))
+        assertEquals("correct rate, first tariff", 20.0, defaultBroker.broker.tariffs.asList().get(0).tariffSpec.rates.asList().get(0).value)
+        assertEquals("correct rate, second tariff", 10.0, defaultBroker.broker.tariffs.asList().get(1).tariffSpec.rates.asList().get(0).value)
     }
 
 }
