@@ -51,8 +51,8 @@ class DefaultBroker
 
         broker.addToTariffs(defaultConsumptionTariff)
         broker.addToTariffs(defaultProductionTariff)
-        tariffMarketService.processTariff(defaultConsumptionTariffSpecification)
-        tariffMarketService.processTariff(defaultProductionTariffSpecification)
+        tariffMarketService.setDefaultTariff(defaultConsumptionTariffSpecification)
+        tariffMarketService.setDefaultTariff(defaultProductionTariffSpecification)
     }
     private Number getDefaultConsumptionRate()
     {
