@@ -35,7 +35,6 @@ class DefaultBroker
         defaultConsumptionTariffSpecification.addToRates(defaultConsumptionRate)
         defaultConsumptionTariffSpecification.save()
 
-
         /* Default Production Tariff */
         TariffSpecification defaultProductionTariffSpecification = new TariffSpecification
           (broker: broker, powerType: PowerType.PRODUCTION)
@@ -43,14 +42,15 @@ class DefaultBroker
         defaultProductionTariffSpecification.addToRates(defaultProductionRate)
         defaultProductionTariffSpecification.save()
 
-        def defaultConsumptionTariff = new Tariff(tariffSpec: defaultConsumptionTariffSpecification, broker: broker)
-        defaultConsumptionTariff.init()
+        // this stuff is all done by TariffMarketService.
+        //def defaultConsumptionTariff = new Tariff(tariffSpec: defaultConsumptionTariffSpecification, broker: broker)
+        //defaultConsumptionTariff.init()
 
-        def defaultProductionTariff = new Tariff(tariffSpec: defaultProductionTariffSpecification, broker: broker)
-        defaultProductionTariff.init()
+        //def defaultProductionTariff = new Tariff(tariffSpec: defaultProductionTariffSpecification, broker: broker)
+        //defaultProductionTariff.init()
 
-        broker.addToTariffs(defaultConsumptionTariff)
-        broker.addToTariffs(defaultProductionTariff)
+        //broker.addToTariffs(defaultConsumptionTariff)
+        //broker.addToTariffs(defaultProductionTariff)
         tariffMarketService.setDefaultTariff(defaultConsumptionTariffSpecification)
         tariffMarketService.setDefaultTariff(defaultProductionTariffSpecification)
     }
