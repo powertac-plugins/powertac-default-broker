@@ -5,29 +5,35 @@ import org.powertac.common.Competition
 import org.powertac.common.PluginConfig
 import org.powertac.common.Broker
 
-class DefaultBrokerInitializationService implements InitializationService {
+class DefaultBrokerInitializationService implements InitializationService
+{
 
-    static transactional = true
+  static transactional = true
 
-    def defaultBrokerService
-    def springSecurityService
+  def defaultBrokerService
+  def springSecurityService
 
-    void setDefaults() {
-        DefaultBroker defaultBroker = new DefaultBroker()
-        PluginConfig config = new PluginConfig(roleName:'defaultBroker', name: 'defaultBroker',
-                configuration: [consumptionRate: '20.0', productionRate: '10.0'])
-        config.save()
-        defaultBroker.config = config
-        defaultBroker.broker = Broker.findByUsername('defaultBroker') ?: new Broker(
-          username: 'defaultBroker', local: true,
-          password: springSecurityService.encodePassword('password'),
-          enabled: true)
-        defaultBroker.broker.save()
-        defaultBroker.save()
+  void setDefaults() 
+  {
+    DefaultBroker defaultBroker = new DefaultBroker()
+    PluginConfig config = new PluginConfig(roleName:'defaultBroker', name: 'defaultBroker',
+        configuration: [consumptionRate: '20.0', productionRate: '10.0'])
+    config.save()
+    defaultBroker.config = config
+    defaultBroker.broker = Broker.findByUsername('defaultBroker') ?: new Broker(
+        username: 'defaultBroker', local: true,
+        password: springSecurityService.encodePassword('password'),
+        enabled: true)
+    defaultBroker.broker.save()
+    defaultBroker.save()
+  }
+
+  String initialize(Competition competition, List<String> completedInits)
+  {
+    if (!completedInits.find{'TariffMarket' == it}) {
+      return null
     }
-
-    String initialize(Competition competition, List<String> completedInits) {
-        defaultBrokerService.init()
-        return 'DefaultBroker'
-    }
+    defaultBrokerService.init()
+    return 'DefaultBroker'
+  }
 }
