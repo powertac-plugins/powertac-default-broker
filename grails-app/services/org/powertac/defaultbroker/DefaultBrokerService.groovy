@@ -35,11 +35,11 @@ import org.powertac.common.Broker
 import org.powertac.common.PluginConfig
 
 class DefaultBrokerService {
-    static transactional = true
+  static transactional = true
 
-    void init()
-    {
-        def defaultBrokerList = DefaultBroker.list()
-        defaultBrokerList*.publishDefaultTariffs()
-    }
+  void init() {
+    def defaultBrokerList = DefaultBroker.list()
+    defaultBrokerList*.publishDefaultTariffs()
+    log.info "Publishing default tariffs"
+  }
 }
