@@ -6,6 +6,13 @@ import org.powertac.common.TariffSpecification
 import org.powertac.common.Rate
 import org.powertac.common.enumerations.PowerType
 import org.powertac.common.Tariff
+import org.joda.time.Instant
+import org.powertac.common.Timeslot
+import org.powertac.common.MarketPosition
+import org.powertac.common.Shout
+import org.powertac.common.enumerations.BuySellIndicator
+import org.powertac.common.enumerations.ProductType
+import org.powertac.common.TariffTransaction
 /**
  * Created by IntelliJ IDEA.
  * User: flath
@@ -13,24 +20,22 @@ import org.powertac.common.Tariff
  * Time: 08:32
  * To change this template use File | Settings | File Templates.
  */
-class DefaultBroker
-{
+class DefaultBroker {
     def tariffMarketService
-    /** Public config data */
+    /** Public config data  */
     PluginConfig config
-    /** Internal Broker for market interaction */
+    /** Internal Broker for market interaction  */
     Broker broker
     static constraints = {
         config(nullable: false)
         broker(nullable: false)
     }
 
-    /**Publishing of Default Tariffs for Consumption and Generation*/
-    def publishDefaultTariffs()
-    {
+    /** Publishing of Default Tariffs for Consumption and Generation */
+    def publishDefaultTariffs() {
         /* Default Consumption Tariff */
         TariffSpecification defaultConsumptionTariffSpecification = new TariffSpecification
-          (broker: broker, powerType: PowerType.CONSUMPTION)
+        (broker: broker, powerType: PowerType.CONSUMPTION)
         Rate defaultConsumptionRate = new Rate(value: getDefaultConsumptionRate())
         defaultConsumptionRate.save()
         defaultConsumptionTariffSpecification.addToRates(defaultConsumptionRate)
@@ -38,7 +43,7 @@ class DefaultBroker
 
         /* Default Production Tariff */
         TariffSpecification defaultProductionTariffSpecification = new TariffSpecification
-          (broker: broker, powerType: PowerType.PRODUCTION)
+        (broker: broker, powerType: PowerType.PRODUCTION)
         Rate defaultProductionRate = new Rate(value: getProductionRate())
         defaultProductionRate.save()
         defaultProductionTariffSpecification.addToRates(defaultProductionRate)
@@ -56,8 +61,8 @@ class DefaultBroker
         tariffMarketService.setDefaultTariff(defaultConsumptionTariffSpecification)
         tariffMarketService.setDefaultTariff(defaultProductionTariffSpecification)
     }
-    private Number getDefaultConsumptionRate()
-    {
+
+    private Number getDefaultConsumptionRate() {
         BigDecimal rate = 0.0
         if (config == null) {
             log.error("cannot find configuration")
@@ -67,8 +72,8 @@ class DefaultBroker
         }
         return rate
     }
-    private Number getProductionRate()
-    {
+
+    private Number getProductionRate() {
         BigDecimal rate = 0.0
         if (config == null) {
             log.error("cannot find configuration")
@@ -77,5 +82,42 @@ class DefaultBroker
             rate = config.configuration['productionRate'].toBigDecimal()
         }
         return rate
+    }
+    /**
+     * Generates Shouts in the market to buy available required power
+     * TODO: watch if kWh / mWh mix up between tariffmarket and wholesalemarket is fixed we need to adjust this code
+     */
+    void generateShouts(Random gen, Instant now, List<Timeslot> openSlots, auctionService) {
+        openSlots?.each { slot ->
+            double requiredAmount = 0
+            if(slot.serialNumber>23)
+            {
+            List<TariffTransaction> transactionList = TariffTransaction.findAllByBrokerAndPostedTime(broker, Timeslot.findBySerialNumber(slot.serialNumber-24).startInstant)
+            transactionList?.each { transaction ->
+                requiredAmount += transaction.quantity/1000
+            }
+            //System.out.println(new String("gross required amount for" + slot.serialNumber.toString() + ": " + requiredAmount.toString()))
+            }
+            MarketPosition position = MarketPosition.findByBrokerAndTimeslot(broker, slot)
+            if (position != null) {
+            // position.overallBalance is positive if we have bought power in this slot
+            requiredAmount -= position.overallBalance
+            //System.out.println(new String("net required amount for" + slot.serialNumber.toString() + ": " + requiredAmount.toString()))
+            }
+            if (requiredAmount > 0.0) {
+                // make an offer to buy
+                Shout offer =
+                new Shout(broker: broker, timeslot: slot,
+                        product: ProductType.Future,
+                        buySellIndicator: BuySellIndicator.BUY,
+                        quantity: requiredAmount,
+                        limitPrice: 20.0)
+                offer.save()
+                broker.addToShouts(offer)
+                broker.save()
+                auctionService?.processShout(offer)
+                //System.out.println(new String("posted bid for timeslot " + slot.serialNumber.toString() + " quantity: " + requiredAmount.toString()))
+            }
+        }
     }
 }

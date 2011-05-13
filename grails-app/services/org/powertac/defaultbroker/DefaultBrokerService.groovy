@@ -33,13 +33,42 @@ import org.joda.time.*
 import org.powertac.common.interfaces.TariffMarket
 import org.powertac.common.Broker
 import org.powertac.common.PluginConfig
+import org.powertac.common.Timeslot
+import org.powertac.common.interfaces.TimeslotPhaseProcessor
+import org.powertac.common.TariffTransaction
 
-class DefaultBrokerService {
+class DefaultBrokerService implements TimeslotPhaseProcessor {
   static transactional = true
+
+  def timeService // autowire
+  def randomSeedService // autowire
+  def competitionControlService
+  def auctionService
+  def tariffMarketService
+
+  Random randomGen = null
 
   void init() {
     def defaultBrokerList = DefaultBroker.list()
     defaultBrokerList*.publishDefaultTariffs()
     log.info "Publishing default tariffs"
+    competitionControlService.registerTimeslotPhase(this, 1)
+  }
+      void activate(Instant now, int phase)
+  {
+    log.info "Activate"
+    Random gen = ensureRandomSeed()
+    List<DefaultBroker> DefaultBrokerList = DefaultBroker.list()
+    List<Timeslot> openSlots = Timeslot.enabledTimeslots()
+    DefaultBrokerList*.generateShouts(gen, now, openSlots, auctionService)
+  }
+
+    private Random ensureRandomSeed ()
+  {
+    if (randomGen == null) {
+      long randomSeed = randomSeedService.nextSeed('DefaultBroker','broker','model')
+      randomGen = new Random(randomSeed)
+    }
+    return randomGen
   }
 }
