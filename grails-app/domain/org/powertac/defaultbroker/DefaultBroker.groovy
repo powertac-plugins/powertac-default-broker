@@ -49,15 +49,6 @@ class DefaultBroker {
         defaultProductionTariffSpecification.addToRates(defaultProductionRate)
         defaultProductionTariffSpecification.save()
 
-        // this stuff is all done by TariffMarketService.
-        //def defaultConsumptionTariff = new Tariff(tariffSpec: defaultConsumptionTariffSpecification, broker: broker)
-        //defaultConsumptionTariff.init()
-
-        //def defaultProductionTariff = new Tariff(tariffSpec: defaultProductionTariffSpecification, broker: broker)
-        //defaultProductionTariff.init()
-
-        //broker.addToTariffs(defaultConsumptionTariff)
-        //broker.addToTariffs(defaultProductionTariff)
         tariffMarketService.setDefaultTariff(defaultConsumptionTariffSpecification)
         tariffMarketService.setDefaultTariff(defaultProductionTariffSpecification)
     }
@@ -90,19 +81,31 @@ class DefaultBroker {
     void generateShouts(Random gen, Instant now, List<Timeslot> openSlots, auctionService) {
         openSlots?.each { slot ->
             double requiredAmount = 0
-            if(slot.serialNumber>23)
+            if(slot.serialNumber<=23)
+            {
+                if(slot.serialNumber==0)
+                {
+
+                }
+                else
+                {
+                List<TariffTransaction> transactionList = TariffTransaction.findAllByBrokerAndPostedTime(broker, Timeslot.findBySerialNumber(slot.serialNumber-1).startInstant)
+                transactionList?.each{ transaction ->
+                requiredAmount += transaction.quantity/1000
+                }
+                }
+            }
+            else
             {
             List<TariffTransaction> transactionList = TariffTransaction.findAllByBrokerAndPostedTime(broker, Timeslot.findBySerialNumber(slot.serialNumber-24).startInstant)
             transactionList?.each { transaction ->
                 requiredAmount += transaction.quantity/1000
             }
-            //System.out.println(new String("gross required amount for" + slot.serialNumber.toString() + ": " + requiredAmount.toString()))
             }
             MarketPosition position = MarketPosition.findByBrokerAndTimeslot(broker, slot)
             if (position != null) {
             // position.overallBalance is positive if we have bought power in this slot
             requiredAmount -= position.overallBalance
-            //System.out.println(new String("net required amount for" + slot.serialNumber.toString() + ": " + requiredAmount.toString()))
             }
             if (requiredAmount > 0.0) {
                 // make an offer to buy
@@ -116,7 +119,6 @@ class DefaultBroker {
                 broker.addToShouts(offer)
                 broker.save()
                 auctionService?.processShout(offer)
-                //System.out.println(new String("posted bid for timeslot " + slot.serialNumber.toString() + " quantity: " + requiredAmount.toString()))
             }
         }
     }
