@@ -54,7 +54,8 @@ class DefaultBrokerService implements TimeslotPhaseProcessor {
     log.info "Publishing default tariffs"
     competitionControlService.registerTimeslotPhase(this, 1)
   }
-      void activate(Instant now, int phase)
+  
+  void activate(Instant now, int phase)
   {
     log.info "Activate"
     Random gen = ensureRandomSeed()

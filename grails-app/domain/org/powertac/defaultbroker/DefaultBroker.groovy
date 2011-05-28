@@ -21,105 +21,102 @@ import org.powertac.common.TariffTransaction
  * To change this template use File | Settings | File Templates.
  */
 class DefaultBroker {
-    def tariffMarketService
-    /** Public config data  */
-    PluginConfig config
-    /** Internal Broker for market interaction  */
-    Broker broker
-    static constraints = {
-        config(nullable: false)
-        broker(nullable: false)
+  def tariffMarketService
+  /** Public config data  */
+  PluginConfig config
+  /** Internal Broker for market interaction  */
+  Broker broker
+  static constraints = {
+    config(nullable: false)
+    broker(nullable: false)
+  }
+
+  /** Publishing of Default Tariffs for Consumption and Generation */
+  def publishDefaultTariffs() {
+    /* Default Consumption Tariff */
+    TariffSpecification defaultConsumptionTariffSpecification =
+        new TariffSpecification (broker: broker, powerType: PowerType.CONSUMPTION)
+    Rate defaultConsumptionRate = new Rate(value: getDefaultConsumptionRate())
+    defaultConsumptionRate.save()
+    defaultConsumptionTariffSpecification.addToRates(defaultConsumptionRate)
+    defaultConsumptionTariffSpecification.save()
+
+    /* Default Production Tariff */
+    TariffSpecification defaultProductionTariffSpecification =
+        new TariffSpecification (broker: broker, powerType: PowerType.PRODUCTION)
+    Rate defaultProductionRate = new Rate(value: getProductionRate())
+    defaultProductionRate.save()
+    defaultProductionTariffSpecification.addToRates(defaultProductionRate)
+    defaultProductionTariffSpecification.save()
+
+    tariffMarketService.setDefaultTariff(defaultConsumptionTariffSpecification)
+    tariffMarketService.setDefaultTariff(defaultProductionTariffSpecification)
+  }
+
+  private Number getDefaultConsumptionRate() {
+    BigDecimal rate = 0.0
+    if (config == null) {
+      log.error("cannot find configuration")
     }
-
-    /** Publishing of Default Tariffs for Consumption and Generation */
-    def publishDefaultTariffs() {
-        /* Default Consumption Tariff */
-        TariffSpecification defaultConsumptionTariffSpecification = new TariffSpecification
-        (broker: broker, powerType: PowerType.CONSUMPTION)
-        Rate defaultConsumptionRate = new Rate(value: getDefaultConsumptionRate())
-        defaultConsumptionRate.save()
-        defaultConsumptionTariffSpecification.addToRates(defaultConsumptionRate)
-        defaultConsumptionTariffSpecification.save()
-
-        /* Default Production Tariff */
-        TariffSpecification defaultProductionTariffSpecification = new TariffSpecification
-        (broker: broker, powerType: PowerType.PRODUCTION)
-        Rate defaultProductionRate = new Rate(value: getProductionRate())
-        defaultProductionRate.save()
-        defaultProductionTariffSpecification.addToRates(defaultProductionRate)
-        defaultProductionTariffSpecification.save()
-
-        tariffMarketService.setDefaultTariff(defaultConsumptionTariffSpecification)
-        tariffMarketService.setDefaultTariff(defaultProductionTariffSpecification)
+    else {
+      rate = config.configuration['consumptionRate'].toBigDecimal()
     }
+    return rate
+  }
 
-    private Number getDefaultConsumptionRate() {
-        BigDecimal rate = 0.0
-        if (config == null) {
-            log.error("cannot find configuration")
+  private Number getProductionRate() {
+    BigDecimal rate = 0.0
+    if (config == null) {
+      log.error("cannot find configuration")
+    }
+    else {
+      rate = config.configuration['productionRate'].toBigDecimal()
+    }
+    return rate
+  }
+  /**
+   * Generates Shouts in the market to buy available required power
+   * TODO: watch if kWh / mWh mix up between tariffmarket and wholesalemarket is fixed we need to adjust this code
+   * JEC: It's not a mixup. The market trades in mWh, but customers produce and consume in kWh.
+   */
+  void generateShouts(Random gen, Instant now, List<Timeslot> openSlots, auctionService) {
+    openSlots?.each { slot ->
+      double requiredAmount = 0
+      if(slot.serialNumber <= 23) {
+        if(slot.serialNumber <= 1) {
+          // cannot buy power because there's no usage record
         }
         else {
-            rate = config.configuration['consumptionRate'].toBigDecimal()
+          List<TariffTransaction> transactionList = TariffTransaction.findAllByBrokerAndPostedTime(broker, Timeslot.findBySerialNumber(slot.serialNumber-2).startInstant)
+          transactionList?.each{ transaction ->
+            requiredAmount += transaction.quantity/1000.0
+          }
         }
-        return rate
+      }
+      else {
+        List<TariffTransaction> transactionList = TariffTransaction.findAllByBrokerAndPostedTime(broker, Timeslot.findBySerialNumber(slot.serialNumber-24).startInstant)
+        transactionList?.each { transaction ->
+          requiredAmount += transaction.quantity/1000.0
+        }
+      }
+      MarketPosition position = MarketPosition.findByBrokerAndTimeslot(broker, slot)
+      if (position != null) {
+        // position.overallBalance is positive if we have bought power in this slot
+        requiredAmount -= position.overallBalance
+      }
+      if (requiredAmount > 0.0) {
+        // make an offer to buy
+        Shout offer =
+            new Shout(broker: broker, timeslot: slot,
+            product: ProductType.Future,
+            buySellIndicator: BuySellIndicator.BUY,
+            quantity: requiredAmount,
+            limitPrice: 20.0)
+        offer.save()
+        broker.addToShouts(offer)
+        broker.save()
+        auctionService?.processShout(offer)
+      }
     }
-
-    private Number getProductionRate() {
-        BigDecimal rate = 0.0
-        if (config == null) {
-            log.error("cannot find configuration")
-        }
-        else {
-            rate = config.configuration['productionRate'].toBigDecimal()
-        }
-        return rate
-    }
-    /**
-     * Generates Shouts in the market to buy available required power
-     * TODO: watch if kWh / mWh mix up between tariffmarket and wholesalemarket is fixed we need to adjust this code
-     */
-    void generateShouts(Random gen, Instant now, List<Timeslot> openSlots, auctionService) {
-        openSlots?.each { slot ->
-            double requiredAmount = 0
-            if(slot.serialNumber<=23)
-            {
-                if(slot.serialNumber==0)
-                {
-
-                }
-                else
-                {
-                List<TariffTransaction> transactionList = TariffTransaction.findAllByBrokerAndPostedTime(broker, Timeslot.findBySerialNumber(slot.serialNumber-1).startInstant)
-                transactionList?.each{ transaction ->
-                requiredAmount += transaction.quantity/1000
-                }
-                }
-            }
-            else
-            {
-            List<TariffTransaction> transactionList = TariffTransaction.findAllByBrokerAndPostedTime(broker, Timeslot.findBySerialNumber(slot.serialNumber-24).startInstant)
-            transactionList?.each { transaction ->
-                requiredAmount += transaction.quantity/1000
-            }
-            }
-            MarketPosition position = MarketPosition.findByBrokerAndTimeslot(broker, slot)
-            if (position != null) {
-            // position.overallBalance is positive if we have bought power in this slot
-            requiredAmount -= position.overallBalance
-            }
-            if (requiredAmount > 0.0) {
-                // make an offer to buy
-                Shout offer =
-                new Shout(broker: broker, timeslot: slot,
-                        product: ProductType.Future,
-                        buySellIndicator: BuySellIndicator.BUY,
-                        quantity: requiredAmount,
-                        limitPrice: 20.0)
-                offer.save()
-                broker.addToShouts(offer)
-                broker.save()
-                auctionService?.processShout(offer)
-            }
-        }
-    }
+  }
 }
