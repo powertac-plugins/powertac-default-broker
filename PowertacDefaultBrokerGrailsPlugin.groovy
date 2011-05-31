@@ -1,4 +1,4 @@
-class PowertacBrokerDefaultGrailsPlugin {
+class PowertacDefaultBrokerGrailsPlugin {
   // the plugin version
   def version = "0.1"
   // the version or versions of Grails the plugin is designed for
@@ -19,7 +19,7 @@ Default broker for Power TAC.
 '''
 
   // URL to the plugin's documentation
-  def documentation = "http://powertac.org/plugin/powertac-broker-default"
+  def documentation = "http://powertac.org/plugin/powertac-default-broker"
 
   def doWithWebDescriptor = { xml ->
     // TODO Implement additions to web.xml (optional), this event occurs before
