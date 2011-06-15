@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>powertac-broker-default</name>
+	<name>powertac-default-broker</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -20,7 +20,7 @@
 		<link>
 			<name>.link_to_grails_plugins</name>
 			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-broker-default/plugins</locationURI>
+			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-default-broker/plugins</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
