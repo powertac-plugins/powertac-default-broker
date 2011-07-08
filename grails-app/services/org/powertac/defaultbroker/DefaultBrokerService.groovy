@@ -50,8 +50,9 @@ class DefaultBrokerService implements TimeslotPhaseProcessor {
 
   void init() {
     def defaultBrokerList = DefaultBroker.list()
-    defaultBrokerList*.publishDefaultTariffs()
     log.info "Publishing default tariffs"
+    defaultBrokerList*.publishDefaultTariffs()
+    tariffMarketService.publishTariffs()
     competitionControlService.registerTimeslotPhase(this, 1)
   }
   
