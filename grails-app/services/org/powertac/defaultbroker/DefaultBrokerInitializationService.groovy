@@ -17,7 +17,7 @@ class DefaultBrokerInitializationService implements InitializationService
   {
     DefaultBroker defaultBroker = new DefaultBroker()
     PluginConfig config = new PluginConfig(roleName:'defaultBroker', name: 'defaultBroker',
-        configuration: [consumptionRate: '10.0', productionRate: '5.0'])
+        configuration: [consumptionRate: '0.75', productionRate: '0.01'])
     config.save()
     defaultBroker.config = config
     defaultBroker.broker = Broker.findByUsername('defaultBroker') ?: new Broker(
