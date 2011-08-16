@@ -111,10 +111,8 @@ class DefaultBroker {
             product: ProductType.Future,
             buySellIndicator: BuySellIndicator.BUY,
             quantity: requiredAmount,
-            limitPrice: 20.0)
+            limitPrice: 40.0)
         offer.save()
-        broker.addToShouts(offer)
-        broker.save()
         auctionService?.processShout(offer)
       }
     }
