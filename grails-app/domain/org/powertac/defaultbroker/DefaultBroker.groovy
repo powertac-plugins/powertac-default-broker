@@ -13,6 +13,8 @@ import org.powertac.common.Shout
 import org.powertac.common.enumerations.BuySellIndicator
 import org.powertac.common.enumerations.ProductType
 import org.powertac.common.TariffTransaction
+import org.powertac.common.HourlyCharge
+import org.powertac.common.msg.VariableRateUpdate
 /**
  * Created by IntelliJ IDEA.
  * User: flath
@@ -22,6 +24,7 @@ import org.powertac.common.TariffTransaction
  */
 class DefaultBroker {
   def tariffMarketService
+
   /** Public config data  */
   PluginConfig config
   /** Internal Broker for market interaction  */
@@ -36,10 +39,10 @@ class DefaultBroker {
     /* Default Consumption Tariff */
     TariffSpecification defaultConsumptionTariffSpecification =
         new TariffSpecification (broker: broker, powerType: PowerType.CONSUMPTION)
-    Rate defaultConsumptionRate = new Rate(value: getDefaultConsumptionRate())
+    Rate defaultConsumptionRate = new Rate(isFixed: false, minValue: 0.05, maxValue: 0.5, noticeInterval: 0, expectedMean: 0.1)
     defaultConsumptionRate.save()
     defaultConsumptionTariffSpecification.addToRates(defaultConsumptionRate)
-    defaultConsumptionTariffSpecification.save()
+    log.error(defaultConsumptionTariffSpecification.save())
 
     /* Default Production Tariff */
     TariffSpecification defaultProductionTariffSpecification =
@@ -116,5 +119,15 @@ class DefaultBroker {
         auctionService?.processShout(offer)
       }
     }
+    def defaultConsumptionTariffId
+    def defaultConsumptionRateId
+    defaultConsumptionTariffId = tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION).tariffSpec.id
+    defaultConsumptionRateId = tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION).tariffSpec.rates[0].id
+
+    BigDecimal updateValue = (Timeslot.currentTimeslot().serialNumber % 24 + 5.0)/100
+    HourlyCharge hc = new HourlyCharge(value: updateValue, atTime: now)
+    def vru
+    vru = new VariableRateUpdate(payload: hc, broker: broker, tariffId: defaultConsumptionTariffId, rateId: defaultConsumptionRateId)
+    log.error("changed rate to $updateValue"+tariffMarketService.processTariff(vru))
   }
 }
