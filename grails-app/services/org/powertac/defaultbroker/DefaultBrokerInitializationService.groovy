@@ -20,7 +20,11 @@ class DefaultBrokerInitializationService implements InitializationService
         configuration: [consumptionRate: '0.75', productionRate: '-0.01'])
     config.save()
     defaultBroker.config = config
-    defaultBroker.broker = Broker.findByUsername('defaultBroker') ?: new Broker(
+    defaultBroker.movingAverageConsumption = 0.0
+    defaultBroker.runningSum = 0.0
+    defaultBroker.movingAverageNumberOfTimeslots = 1
+    defaultBroker.referenceAverages = new BigDecimal[24]
+      defaultBroker.broker = Broker.findByUsername('defaultBroker') ?: new Broker(
         username: 'defaultBroker', local: true,
         password: springSecurityService.encodePassword('password'),
         enabled: true)
